@@ -25,15 +25,24 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- =========================================================
 CREATE TABLE customers (
   id CHAR(36) PRIMARY KEY,
+
   name VARCHAR(255) NOT NULL,
-  email VARCHAR(255) NULL,
-  ga4_property_id VARCHAR(100) NULL,
-  gsc_site_url VARCHAR(255) NULL,
-  report_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+
+  contact_emails TEXT NOT NULL,
+
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+
+  ga4_property_id VARCHAR(100) NOT NULL,
+
+  gsc_site_url VARCHAR(255) NOT NULL,
+
   last_ga4_fetch_date DATE NULL,
   last_gsc_fetch_date DATE NULL,
+
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_customers_name ON customers(name);
