@@ -1,0 +1,27 @@
+{
+  "name": "pixelplus-website-performance-tool",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A web-based reporting platform for Pixelplus that collects website performance data from Google Analytics 4 and Google Search Console, stores it in MySQL, and presents it in a clear client-friendly dashboard.",
+  "type": "commonjs",
+  "scripts": {
+    "fetch:daily": "node scripts/fetch-daily.js",
+    "build:monthly": "node scripts/build-monthly-reports.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KoenMartensPXL/pixelplus-website-performance-tool.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KoenMartensPXL/pixelplus-website-performance-tool/issues"
+  },
+  "homepage": "https://github.com/KoenMartensPXL/pixelplus-website-performance-tool#readme",
+  "dependencies": {
+    "@google-analytics/data": "^4.8.0",
+    "dotenv": "^16.4.5",
+    "form-data": "^4.0.0",
+    "googleapis": "^140.0.0",
+    "mailgun.js": "^10.2.1",
+    "mysql2": "^3.10.0"
+  }
+}
