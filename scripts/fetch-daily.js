@@ -1,6 +1,4 @@
-// Laad environment variables.
-// We proberen eerst app/.env, omdat jouw frontend daar zit.
-// Als dat bestand niet bestaat, geeft dotenv geen harde fout.
+// Environment variables laden.
 require("dotenv").config({ path: "./app/.env" });
 
 const mysql = require("mysql2/promise");
@@ -8,8 +6,7 @@ const { BetaAnalyticsDataClient } = require("@google-analytics/data");
 const { google } = require("googleapis");
 
 /**
- * Haal een verplichte environment variable op.
- * Als die ontbreekt, stoppen we meteen met een duidelijke foutmelding.
+ * Foutmelding bij missende env variables
  */
 function mustEnv(name) {
   const value = process.env[name];
@@ -21,17 +18,12 @@ function mustEnv(name) {
   return value;
 }
 
-/**
- * Zet een JavaScript Date om naar YYYY-MM-DD.
- * Dit formaat gebruiken we voor de database en API-calls.
- */
 function toISODate(date) {
   return date.toISOString().slice(0, 10);
 }
 
 /**
- * Geef "gisteren" terug in UTC.
- * De daily fetch draait normaal voor de vorige dag.
+ * Daily fetch haalt data van vorige dag
  */
 function yesterdayUTC() {
   const date = new Date();
@@ -41,12 +33,6 @@ function yesterdayUTC() {
 
 /**
  * Haal de Google service account credentials op uit env.
- *
- * Ondersteunde formaten:
- * - GA_SERVICE_ACCOUNT_JSON
- * - GA_SERVICE_ACCOUNT_JSON_B64
- *
- * Zo blijft dit compatibel met je oude testproject.
  */
 function getServiceAccount() {
   if (process.env.GA_SERVICE_ACCOUNT_JSON_B64) {
@@ -62,9 +48,7 @@ function getServiceAccount() {
 }
 
 /**
- * Helper om async code te wrappen met een duidelijke label.
- * Handig zodat foutmeldingen meteen tonen in welk onderdeel
- * van het proces iets fout liep.
+ * Helper om async code te wrappen met een duidelijk label.
  */
 async function safe(label, fn) {
   try {
@@ -80,9 +64,8 @@ async function safe(label, fn) {
 }
 
 /**
- * Sommige GA4 properties ondersteunen niet altijd exact dezelfde
- * metrics of dimensions. Daarom proberen we eerst de hoofdquery,
- * en daarna optionele fallbacks.
+ * Niet alle GA4 props ondersteunen zelfde metrics
+ * eerst hoofdquery -> dan fallbacks
  */
 async function runReportWithFallback(label, ga, request, fallbacks = []) {
   try {
@@ -101,17 +84,15 @@ async function runReportWithFallback(label, ga, request, fallbacks = []) {
           ga.runReport(fallback.request(request))
         );
       } catch {
-        // Gewoon doorgaan naar de volgende fallback.
+        // Doorgaan naar volgende fallback
       }
     }
-
-    // Als alle fallbacks mislukken, gooien we de originele fout terug.
     throw error;
   }
 }
 
 /**
- * Maak een MySQL connectie op basis van DATABASE_URL.
+ * MySQL Connection
  */
 async function createDbConnection() {
   return mysql.createConnection({
@@ -120,22 +101,16 @@ async function createDbConnection() {
 }
 
 async function main() {
-  // Gebruik TARGET_DATE als die is meegegeven.
-  // Anders nemen we standaard gisteren.
+  // Standaard gisteren
   const targetDate = process.env.TARGET_DATE || toISODate(yesterdayUTC());
 
   // Lees de service account in voor Google API toegang.
   const serviceAccount = getServiceAccount();
 
-  // -------------------------------------------------------
-  // 1. Verbind met de database
-  // -------------------------------------------------------
+  // Verbind DB
   const db = await createDbConnection();
 
-  // -------------------------------------------------------
-  // 2. Maak een job_runs record aan zodat we loggen
-  //    wanneer deze fetch gestart is
-  // -------------------------------------------------------
+  // Log wanneer fetch start
   const [jobRunResult] = await db.execute(
     `
       INSERT INTO job_runs (job_name, status, target_date)
@@ -146,10 +121,7 @@ async function main() {
 
   const jobRunId = jobRunResult.insertId;
 
-  // -------------------------------------------------------
-  // 3. Haal alle actieve klanten op
-  //    Alleen actieve klanten worden meegenomen in de fetch
-  // -------------------------------------------------------
+  // Alleen actieve klanten worden opgehaald
   const [customers] = await db.execute(
     `
       SELECT id, name, ga4_property_id, gsc_site_url
@@ -162,10 +134,7 @@ async function main() {
   console.log(`Daily fetch gestart voor datum: ${targetDate}`);
   console.log(`Aantal actieve klanten gevonden: ${customers.length}`);
 
-  // -------------------------------------------------------
-  // 4. Als er nog geen klanten zijn, stoppen we netjes
-  //    zonder error. Dit is handig tijdens development.
-  // -------------------------------------------------------
+  // Indien geen klanten, stopt fetch
   if (customers.length === 0) {
     await db.execute(
       `
@@ -187,9 +156,7 @@ async function main() {
     return;
   }
 
-  // -------------------------------------------------------
-  // 5. Maak de Google API clients aan
-  // -------------------------------------------------------
+  // Maak Google API clients aan
   const ga = new BetaAnalyticsDataClient({
     credentials: serviceAccount,
   });
@@ -209,9 +176,7 @@ async function main() {
   let failureCount = 0;
   let errorSummary = "";
 
-  // -------------------------------------------------------
-  // 6. Verwerk elke actieve klant één voor één
-  // -------------------------------------------------------
+  // Verwerk klanten
   for (const customer of customers) {
     const customerLabel = `${customer.name} (${customer.ga4_property_id || "no-property"})`;
 
@@ -222,10 +187,7 @@ async function main() {
 
       const property = `properties/${customer.ga4_property_id}`;
 
-      // =====================================================
-      // DEEL A: GA4 TOTALS
-      // =====================================================
-      // Hier halen we de belangrijkste dagelijkse GA4 metrics op.
+      // GA4 TOTALS
       const totalsRequest = {
         property,
         dateRanges: [{ startDate: targetDate, endDate: targetDate }],
@@ -242,8 +204,7 @@ async function main() {
         ],
       };
 
-      // Sommige properties ondersteunen niet alle metrics op dezelfde manier.
-      // Daarom voorzien we fallbacks.
+      //Fallbacks
       const [totalsResponse] = await runReportWithFallback(
         `GA4 totals voor ${customerLabel}`,
         ga,
@@ -287,8 +248,7 @@ async function main() {
 
       const totalsRow = totalsResponse.rows?.[0];
       const metricValues = totalsRow?.metricValues?.map((m) => m.value) ?? [];
-
-      // Zet alle waarden om naar getallen
+      
       const newUsers = Number(metricValues[0] ?? 0);
       const activeUsers = Number(metricValues[1] ?? 0);
       const sessions = Number(metricValues[2] ?? 0);
@@ -308,7 +268,6 @@ async function main() {
           ? Number(metricValues[8])
           : 0;
 
-      // Extra afgeleide metric
       const pagesPerSession = sessions > 0 ? pageviews / sessions : null;
 
       // Sla de dagelijkse GA4 totals op in MySQL
@@ -361,10 +320,8 @@ async function main() {
         )
       );
 
-      // =====================================================
-      // DEEL B: GA4 BREAKDOWNS
-      // =====================================================
-      // Deze helper haalt toplijsten op, zoals top pages of top countries.
+      // GA4 Breakdowns
+      // Toplijsten op, zoals top pages of top countries.
       async function topList(
         label,
         dimensionName,
@@ -474,10 +431,8 @@ async function main() {
         )
       );
 
-      // =====================================================
-      // DEEL C: GOOGLE SEARCH CONSOLE
-      // =====================================================
-      // Als een klant een gsc_site_url heeft, halen we ook SEO-data op.
+      // GOOGLE SEARCH CONSOLE
+      // Als klant gsc_site_url heeft, halen we ook SEO-data op.
       if (customer.gsc_site_url) {
         const siteUrl = customer.gsc_site_url;
 
@@ -583,9 +538,7 @@ async function main() {
     }
   }
 
-  // -------------------------------------------------------
-  // 7. Werk de job_run af met de eindstatus
-  // -------------------------------------------------------
+  // Eindstatus
   const status =
     failureCount === 0 ? "success" : successCount > 0 ? "partial" : "failed";
 
