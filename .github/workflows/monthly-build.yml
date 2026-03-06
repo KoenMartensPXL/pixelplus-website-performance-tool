@@ -1,0 +1,39 @@
+name: Monthly Build (DB aggregation + magic links + email)
+
+on:
+  schedule:
+    - cron: "0 5 1 * *" # 06:00 Nederland in wintertijd, 07:00 in zomertijd
+  workflow_dispatch:
+    inputs:
+      target_month:
+        description: "YYYY-MM-01 (leave empty = previous month)"
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run monthly build
+        run: node scripts/build-monthly-reports.js
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          TARGET_MONTH: ${{ github.event.inputs.target_month }}
+
+          MAGIC_LINK_BASE_URL: ${{ secrets.MAGIC_LINK_BASE_URL }}
+          MAGIC_LINK_TTL_DAYS: ${{ secrets.MAGIC_LINK_TTL_DAYS }}
+
+          MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
+          MAILGUN_DOMAIN: ${{ secrets.MAILGUN_DOMAIN }}
+          MAILGUN_FROM_EMAIL: ${{ secrets.MAILGUN_FROM_EMAIL }}
