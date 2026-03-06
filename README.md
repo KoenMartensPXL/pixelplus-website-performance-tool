@@ -13,7 +13,7 @@ A web-based reporting platform for Pixelplus that collects website performance d
 ## Tech stack
 
 - Node.js
-- PostgreSQL
+- MySQL
 - Google Analytics Data API
 - Google Search Console API
 - Mailgun
