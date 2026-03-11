@@ -518,11 +518,12 @@ async function main() {
           INSERT INTO magic_link_tokens (
             customer_id,
             token_hash,
-            created_for_month,
             expires_at,
-            created_at
+            created_at,
+            used_at,
+            revoked_at
           )
-          VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+          VALUES (?, ?, ?, CURRENT_TIMESTAMP, NULL, NULL)
           ON DUPLICATE KEY UPDATE
             token_hash = VALUES(token_hash),
             expires_at = VALUES(expires_at),
@@ -530,7 +531,7 @@ async function main() {
             used_at = NULL,
             revoked_at = NULL
         `,
-        [customer.id, tokenHash, iso(monthStart), expiresAt]
+        [customer.id, tokenHash, expiresAt]
       );
 
       const reportUrl = `${baseUrl}/${token}`;
@@ -618,4 +619,5 @@ main().catch((error) => {
   console.error(error);
   process.exit(1);
 });
+
 
