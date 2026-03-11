@@ -12,6 +12,8 @@ A web-based reporting platform for Pixelplus that collects website performance d
 
 ## Tech stack
 
+- React - Next.js
+- TypeScript
 - Node.js
 - MySQL
 - Google Analytics Data API
