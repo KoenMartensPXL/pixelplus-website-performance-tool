@@ -30,7 +30,7 @@ async function sendSimpleMessageTemplate() {
 
       subject: "Pixelplus rapport test",
 
-      template: "pixelplus-monthly-report",
+      template: "pixelplusrapport",
 
       "h:X-Mailgun-Variables": JSON.stringify({
         customer_name: "Koen Martens",
