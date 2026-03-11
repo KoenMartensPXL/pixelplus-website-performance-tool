@@ -533,7 +533,7 @@ async function main() {
         [customer.id, tokenHash, iso(monthStart), expiresAt]
       );
 
-      const reportUrl = `${baseUrl}/${token}?month=${iso(monthStart)}`;
+      const reportUrl = `${baseUrl}/${token}`;
 
       console.log(`🔗 Magic link aangemaakt: ${label} -> ${reportUrl}`);
 
@@ -618,3 +618,4 @@ main().catch((error) => {
   console.error(error);
   process.exit(1);
 });
+
