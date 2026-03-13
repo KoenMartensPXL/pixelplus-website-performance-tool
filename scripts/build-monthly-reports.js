@@ -205,7 +205,7 @@ async function main() {
   // Actieve klanten ophalen
   const [customers] = await db.execute(
     `
-      SELECT id, name, contact_emails, report_enabled
+      SELECT id, name, slug, contact_emails, report_enabled
       FROM customers
       WHERE is_active = TRUE
       ORDER BY name ASC
@@ -534,7 +534,7 @@ async function main() {
         [customer.id, tokenHash, expiresAt]
       );
 
-      const reportUrl = `${baseUrl}/${token}`;
+      const reportUrl = `${baseUrl}/${customer.slug}/${token}`;
 
       console.log(`🔗 Magic link aangemaakt: ${label} -> ${reportUrl}`);
 
@@ -619,5 +619,6 @@ main().catch((error) => {
   console.error(error);
   process.exit(1);
 });
+
 
 
