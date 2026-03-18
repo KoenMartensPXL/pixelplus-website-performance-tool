@@ -2,7 +2,7 @@ import { getDb } from "@/app/lib/db";
 import crypto from "crypto";
 
 export async function getAllCustomers() {
-  const db = await getDb();
+  const db = getDb();
 
   const [rows] = await db.execute(
     `
@@ -23,7 +23,7 @@ export async function getAllCustomers() {
 }
 
 export async function getCustomerBySlug(slug: string) {
-  const db = await getDb();
+  const db = getDb();
 
   const [rows] = await db.execute(
     `
@@ -39,7 +39,7 @@ export async function getCustomerBySlug(slug: string) {
 }
 
 export async function getLatestReportForCustomer(customerId: number | string) {
-  const db = await getDb();
+  const db = getDb();
 
   const [rows] = await db.execute(
     `
@@ -59,7 +59,7 @@ export async function getTokenCustomerBySlugAndToken(
   slug: string,
   token: string,
 ) {
-  const db = await getDb();
+  const db = getDb();
   const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
 
   const [rows] = await db.execute(

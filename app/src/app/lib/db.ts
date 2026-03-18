@@ -1,19 +1,31 @@
-import mysql from "mysql2/promise";
+import mysql, { Pool } from "mysql2/promise";
 
-let connection: mysql.Connection | null = null;
+declare global {
+  // eslint-disable-next-line no-var
+  var __mysqlPool: Pool | undefined;
+}
 
-export async function getDb() {
-  if (connection) return connection;
+function mustEnv(name: string) {
+  const value = process.env[name];
 
-  const databaseUrl = process.env.DATABASE_URL;
-
-  if (!databaseUrl) {
-    throw new Error("Missing DATABASE_URL");
+  if (!value) {
+    throw new Error(`Missing environment variable: ${name}`);
   }
 
-  connection = await mysql.createConnection({
-    uri: databaseUrl,
-  });
+  return value;
+}
 
-  return connection;
+export function getDb() {
+  if (!global.__mysqlPool) {
+    global.__mysqlPool = mysql.createPool({
+      uri: mustEnv("DATABASE_URL"),
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 0,
+    });
+  }
+
+  return global.__mysqlPool;
 }
