@@ -12,7 +12,7 @@ export default function BrandHeader({
     <div className="flex items-center justify-between gap-4">
       <Link href={href} className="inline-flex items-center gap-3">
         <Image
-          src="/brand/Pixelplus+Logo.png"
+          src="/brand/Pixelplus-Logo.png"
           alt="Pixelplus"
           width={220}
           height={48}
