@@ -5,7 +5,6 @@ import {
   trendFromDelta,
 } from "@/app/lib/format";
 
-//aanpassing tijdelijk
 export function getValue(summary: any, path: string) {
   // path like "kpis.sessions"
   const parts = path.split(".");
