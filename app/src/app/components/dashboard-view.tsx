@@ -13,6 +13,7 @@ import {
   MousePointerClick,
   Users,
   Globe,
+  Mail,
 } from "lucide-react";
 import React from "react";
 import { buildCoreKpis, buildTrafficKpis, buildMarketingKpis } from "./kpi";
@@ -152,6 +153,66 @@ function ListCard({ title, items }: { title: string; items: KV[] }) {
   );
 }
 
+function SendReportAction({ slug }: { slug: string }) {
+  const [loading, setLoading] = React.useState(false);
+  const [message, setMessage] = React.useState("");
+  const [error, setError] = React.useState("");
+
+  async function handleSend() {
+    setLoading(true);
+    setMessage("");
+    setError("");
+
+    try {
+      const res = await fetch(`/api/admin/customers/${slug}/send-report`, {
+        method: "POST",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Versturen mislukt");
+        setLoading(false);
+        return;
+      }
+
+      setMessage("Mail verstuurd");
+      setLoading(false);
+
+      setTimeout(() => {
+        setMessage("");
+      }, 3000);
+    } catch {
+      setError("Er ging iets mis");
+      setLoading(false);
+
+      setTimeout(() => {
+        setError("");
+      }, 3000);
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={handleSend}
+        disabled={loading}
+        className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10 disabled:opacity-50"
+      >
+        <Mail className="h-4 w-4" />
+        {loading ? "Bezig..." : "Performance mail opnieuw versturen"}
+      </button>
+
+      {message ? (
+        <span className="text-xs text-emerald-300">{message}</span>
+      ) : null}
+
+      {error ? <span className="text-xs text-red-400">{error}</span> : null}
+    </div>
+  );
+}
+
 export default function DashboardView({
   customer,
   report,
@@ -253,10 +314,6 @@ export default function DashboardView({
     setSelectedComparisonMonth(nextValue);
   }, [comparisonMonthFromReport, availableComparisonMonths]);
 
-  console.log("report.report_month", report?.report_month);
-  console.log("months", months);
-  console.log("availableComparisonMonths", availableComparisonMonths);
-
   return (
     <div className="min-h-screen bg-black text-white">
       <header className="border-b border-white/10 bg-black">
@@ -282,13 +339,19 @@ export default function DashboardView({
           </div>
 
           {isAdmin ? (
-            <Link
-              href="/admin"
-              className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Terug naar klanten
-            </Link>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+              {customer?.slug ? (
+                <SendReportAction slug={customer.slug} />
+              ) : null}
+
+              <Link
+                href="/admin"
+                className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Terug naar klanten
+              </Link>
+            </div>
           ) : null}
         </div>
       </header>

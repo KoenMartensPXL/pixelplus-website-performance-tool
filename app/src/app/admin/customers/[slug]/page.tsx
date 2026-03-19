@@ -6,6 +6,7 @@ import {
 } from "@/app/lib/dashboard";
 import DashboardView from "@/app/components/dashboard-view";
 import BrandFooter from "@/app/components/brand/brand-footer";
+import SendReportButton from "@/app/components/admin/send-report-button";
 
 function serializeForClient<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
