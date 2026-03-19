@@ -26,7 +26,7 @@ jobs:
         run: npm install
 
       - name: Run monthly build
-        run: node scripts/build-monthly-reports.js
+        run: npx tsx scripts/monthly-build.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           TARGET_MONTH: ${{ github.event.inputs.target_month }}
