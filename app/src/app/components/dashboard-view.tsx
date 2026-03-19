@@ -263,7 +263,7 @@ export default function DashboardView({
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-6">
             <Image
-              src="/brand/pixelplus+Logo.png"
+              src="/brand/Pixelplus-Logo.png"
               alt="Pixelplus"
               width={180}
               height={32}
