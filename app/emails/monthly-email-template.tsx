@@ -37,11 +37,31 @@ type Comparison = {
 };
 
 export type MonthlyReportEmailProps = {
-  customerName: string;
-  monthStr: string;
-  reportUrl: string;
-  summary: Summary;
-  comparison: Comparison;
+  customerName?: string;
+  monthStr?: string;
+  reportUrl?: string;
+  summary?: Summary;
+  comparison?: Comparison;
+};
+
+export const PreviewProps: MonthlyReportEmailProps = {
+  customerName: "M25 Watches",
+  monthStr: "2026-01-01",
+  reportUrl: "https://example.com/report",
+  summary: {
+    kpis: {
+      new_users: 12847,
+      sessions: 24561,
+    },
+    top_pages: [{ key: "/contact", value: 15234 }],
+    top_countries: [{ key: "Nederland", value: 14562 }],
+  },
+  comparison: {
+    kpis: {
+      new_users: { delta_pct: 25.5 },
+      sessions: { delta_pct: 15.1 },
+    },
+  },
 };
 
 function formatMonthNL(yyyyMm01: string) {
@@ -84,11 +104,23 @@ function deltaColor(delta: number | null | undefined) {
 }
 
 export default function MonthlyReportEmail({
-  customerName,
-  monthStr,
-  reportUrl,
-  summary,
-  comparison,
+  customerName = "M25 Watches",
+  monthStr = "2026-01-01",
+  reportUrl = "https://example.com/report",
+  summary = {
+    kpis: {
+      new_users: 12847,
+      sessions: 24561,
+    },
+    top_pages: [{ key: "/contact", value: 15234 }],
+    top_countries: [{ key: "Nederland", value: 14562 }],
+  },
+  comparison = {
+    kpis: {
+      new_users: { delta_pct: 25.5 },
+      sessions: { delta_pct: 15.1 },
+    },
+  },
 }: MonthlyReportEmailProps) {
   const monthLabel = formatMonthNL(monthStr);
 
@@ -102,9 +134,7 @@ export default function MonthlyReportEmail({
   const topPageViews = `${fmtInt(summary.top_pages?.[0]?.value ?? 0)} weergaven`;
 
   const topCountry = summary.top_countries?.[0]?.key ?? "-";
-  const topCountryUsers = `${fmtInt(
-    summary.top_countries?.[0]?.value ?? 0,
-  )} gebruikers`;
+  const topCountryUsers = `${fmtInt(summary.top_countries?.[0]?.value ?? 0)} gebruikers`;
 
   return (
     <Html>
@@ -194,26 +224,50 @@ export default function MonthlyReportEmail({
               adviesgesprek.
             </Text>
 
-            <Text style={text}>
-              Met vriendelijke groet,
-              <br />
-              <strong>Team Pixelplus</strong>
-            </Text>
-          </Section>
+            <Row>
+              <Column style={{ width: "70%", verticalAlign: "top" }}>
+                <Text style={text}>
+                  Met vriendelijke groet,
+                  <br />
+                  <strong>Team Pixelplus</strong>
+                </Text>
+              </Column>
 
-          <Section style={footer}>
-            <Text style={footerTitle}>Pixelplus Interactieve Media</Text>
-            <Text style={footerText}>
-              info@pixelplus.nl | +31 (0)20 123 4567
-            </Text>
-            <Text style={footerSmall}>
-              Deze e-mail is automatisch gegenereerd op basis van website data.
-              Data wordt dagelijks om 00:00 uur bijgewerkt via Google Analytics
-              4.
-            </Text>
-            <Text style={footerSmall}>
-              © 2026 Pixelplus. Alle rechten voorbehouden.
-            </Text>
+              <Column
+                style={{
+                  width: "30%",
+                  textAlign: "right",
+                  verticalAlign: "middle",
+                }}
+              >
+                <Img
+                  src="https://pixelplus-website-performance-tool.vercel.app/brand/PixelplusIconLogo.png"
+                  alt="Pixelplus icons"
+                  style={{
+                    width: "150px",
+                    height: "auto",
+                    display: "inline-block",
+                  }}
+                />
+              </Column>
+            </Row>
+
+            <Section style={footer}>
+              <Text style={footerTitle}>Pixelplus Interactieve Media</Text>
+              <Text style={footerText}>
+                info@pixelplus.nl | +31 (0)20 123 4567d
+              </Text>
+
+              <Text style={footerSmall}>
+                Deze e-mail is automatisch gegenereerd op basis van website
+                data. Data wordt dagelijks om 00:00 uur bijgewerkt via Google
+                Analytics 4.
+              </Text>
+
+              <Text style={footerSmall}>
+                © 2026 Pixelplus. Alle rechten voorbehouden.
+              </Text>
+            </Section>
           </Section>
         </Container>
       </Body>
@@ -243,6 +297,36 @@ const logo = {
   height: "auto",
   marginBottom: "12px",
   display: "inline-block",
+};
+
+const logoFooter = {};
+
+const footer = {
+  backgroundColor: "#2a1f22",
+  padding: "24px 32px 12px",
+  textAlign: "center" as const,
+};
+
+const footerTitle = {
+  color: "#ffffff",
+  fontSize: "20px",
+  lineHeight: "28px",
+  fontWeight: "700",
+  margin: "0 0 8px",
+};
+
+const footerText = {
+  color: "#ffffff",
+  fontSize: "15px",
+  lineHeight: "24px",
+  margin: "0 0 14px",
+};
+
+const footerSmall = {
+  color: "#d7d1d1",
+  fontSize: "12px",
+  lineHeight: "20px",
+  margin: "0 0 10px",
 };
 
 const main = {
@@ -366,32 +450,4 @@ const smallMuted = {
   fontSize: "12px",
   lineHeight: "18px",
   margin: "18px 0 0",
-};
-
-const footer = {
-  backgroundColor: "#2a1f22",
-  padding: "24px 32px 28px",
-  textAlign: "center" as const,
-};
-
-const footerTitle = {
-  color: "#ffffff",
-  fontSize: "20px",
-  lineHeight: "28px",
-  fontWeight: "700",
-  margin: "0 0 8px",
-};
-
-const footerText = {
-  color: "#ffffff",
-  fontSize: "15px",
-  lineHeight: "24px",
-  margin: "0 0 14px",
-};
-
-const footerSmall = {
-  color: "#d7d1d1",
-  fontSize: "12px",
-  lineHeight: "20px",
-  margin: "0 0 10px",
 };
