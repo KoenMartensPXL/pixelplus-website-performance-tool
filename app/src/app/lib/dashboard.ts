@@ -1,6 +1,19 @@
 import { getDb } from "@/app/lib/db";
 import crypto from "crypto";
 
+//Fout met db
+function parseJsonField<T>(value: T): T {
+  if (typeof value === "string") {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return value;
+    }
+  }
+
+  return value;
+}
+
 export async function getAllCustomers() {
   const db = getDb();
 
@@ -52,7 +65,17 @@ export async function getLatestReportForCustomer(customerId: number | string) {
     [customerId],
   );
 
-  return (rows as any[])[0] ?? null;
+  const report = (rows as any[])[0] ?? null;
+
+  if (!report) {
+    return null;
+  }
+
+  return {
+    ...report,
+    summary: parseJsonField(report.summary),
+    comparison: parseJsonField(report.comparison),
+  };
 }
 
 export async function getTokenCustomerBySlugAndToken(
