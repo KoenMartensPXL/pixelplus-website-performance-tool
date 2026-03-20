@@ -68,10 +68,26 @@ function InfoTip({ text }: { text: string }) {
   );
 }
 
-function normalizeMonth(month: string) {
+function normalizeMonth(month: unknown) {
   if (!month) return "";
-  if (/^\d{4}-\d{2}$/.test(month)) return `${month}-01`;
-  return month.slice(0, 10);
+
+  // string
+  if (typeof month === "string") {
+    if (/^\d{4}-\d{2}$/.test(month)) return `${month}-01`;
+    return month.slice(0, 10);
+  }
+
+  // Date object (MySQL geeft dit vaak terug)
+  if (month instanceof Date) {
+    return month.toISOString().slice(0, 10);
+  }
+
+  // fallback
+  try {
+    return new Date(month as any).toISOString().slice(0, 10);
+  } catch {
+    return "";
+  }
 }
 
 function monthDiff(fromMonth: string, toMonth: string) {
