@@ -14,6 +14,9 @@ import {
   Users,
   Globe,
   Mail,
+  CheckCircle2,
+  AlertCircle,
+  X,
 } from "lucide-react";
 import React from "react";
 import { buildCoreKpis, buildTrafficKpis, buildMarketingKpis } from "./kpi";
@@ -153,15 +156,66 @@ function ListCard({ title, items }: { title: string; items: KV[] }) {
   );
 }
 
+function Toast({
+  type,
+  message,
+  onClose,
+}: {
+  type: "success" | "error";
+  message: string;
+  onClose: () => void;
+}) {
+  const isSuccess = type === "success";
+
+  return (
+    <div
+      className={`pointer-events-auto flex min-w-[280px] max-w-[360px] items-start gap-3 rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur ${
+        isSuccess
+          ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-200"
+          : "border-red-500/20 bg-red-500/10 text-red-200"
+      }`}
+    >
+      <div className="mt-0.5">
+        {isSuccess ? (
+          <CheckCircle2 className="h-5 w-5" />
+        ) : (
+          <AlertCircle className="h-5 w-5" />
+        )}
+      </div>
+
+      <div className="flex-1 text-sm">{message}</div>
+
+      <button
+        type="button"
+        onClick={onClose}
+        className="text-white/50 transition hover:text-white"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
 function SendReportAction({ slug }: { slug: string }) {
   const [loading, setLoading] = React.useState(false);
-  const [message, setMessage] = React.useState("");
-  const [error, setError] = React.useState("");
+  const [toast, setToast] = React.useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  React.useEffect(() => {
+    if (!toast) return;
+
+    const timeout = setTimeout(() => {
+      setToast(null);
+    }, 3500);
+
+    return () => clearTimeout(timeout);
+  }, [toast]);
 
   async function handleSend() {
     setLoading(true);
-    setMessage("");
-    setError("");
+    setToast(null);
 
     try {
       const res = await fetch(`/api/admin/customers/${slug}/send-report`, {
@@ -171,45 +225,52 @@ function SendReportAction({ slug }: { slug: string }) {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || "Versturen mislukt");
+        setToast({
+          type: "error",
+          message: data.message || "Versturen mislukt",
+        });
         setLoading(false);
         return;
       }
 
-      setMessage("Mail verstuurd");
+      setToast({
+        type: "success",
+        message: data.message || "Mail opnieuw verstuurd",
+      });
       setLoading(false);
-
-      setTimeout(() => {
-        setMessage("");
-      }, 3000);
     } catch {
-      setError("Er ging iets mis");
+      setToast({
+        type: "error",
+        message: "Er ging iets mis bij het versturen",
+      });
       setLoading(false);
-
-      setTimeout(() => {
-        setError("");
-      }, 3000);
     }
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <button
-        type="button"
-        onClick={handleSend}
-        disabled={loading}
-        className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10 disabled:opacity-50"
-      >
-        <Mail className="h-4 w-4" />
-        {loading ? "Bezig..." : "Performance mail opnieuw versturen"}
-      </button>
+    <>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={handleSend}
+          disabled={loading}
+          className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10 disabled:opacity-50"
+        >
+          <Mail className="h-4 w-4" />
+          {loading ? "Bezig..." : "Performance mail opnieuw versturen"}
+        </button>
+      </div>
 
-      {message ? (
-        <span className="text-xs text-emerald-300">{message}</span>
-      ) : null}
-
-      {error ? <span className="text-xs text-red-400">{error}</span> : null}
-    </div>
+      <div className="pointer-events-none fixed right-4 top-4 z-[100] flex flex-col gap-3">
+        {toast ? (
+          <Toast
+            type={toast.type}
+            message={toast.message}
+            onClose={() => setToast(null)}
+          />
+        ) : null}
+      </div>
+    </>
   );
 }
 

@@ -44,7 +44,7 @@ export default function LoginPage() {
       setTimeout(() => {
         router.push("/admin");
         router.refresh();
-      }, 2200);
+      }, 200);
     } catch {
       setError("Er ging iets mis bij het inloggen");
       setLoading(false);
