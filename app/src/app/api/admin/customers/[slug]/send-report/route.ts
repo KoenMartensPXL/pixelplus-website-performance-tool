@@ -19,7 +19,6 @@ export async function POST(
     }
 
     const { slug } = await params;
-
     const result = await resendLatestReportForCustomer(slug);
 
     return NextResponse.json({

@@ -14,9 +14,9 @@ import {
   Img,
 } from "@react-email/components";
 
-type TopItem = { key: string; value: number };
+export type TopItem = { key: string; value: number };
 
-type Summary = {
+export type Summary = {
   kpis: {
     new_users: number;
     sessions: number;
@@ -25,7 +25,7 @@ type Summary = {
   top_countries?: TopItem[];
 };
 
-type Comparison = {
+export type Comparison = {
   kpis: {
     new_users?: {
       delta_pct: number | null;
@@ -255,7 +255,7 @@ export default function MonthlyReportEmail({
             <Section style={footer}>
               <Text style={footerTitle}>Pixelplus Interactieve Media</Text>
               <Text style={footerText}>
-                info@pixelplus.nl | +31 (0)20 123 4567d
+                info@pixelplus.nl | +31 (0)20 123 4567
               </Text>
 
               <Text style={footerSmall}>

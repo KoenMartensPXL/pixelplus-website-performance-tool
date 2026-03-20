@@ -1,12 +1,16 @@
-import "dotenv/config";
 import Mailgun from "mailgun.js";
 import FormData from "form-data";
 import { render } from "@react-email/render";
-import MonthlyReportEmail from "../app/emails/monthly-email-template";
+import MonthlyReportEmail, {
+  type Summary,
+  type Comparison,
+} from "../../../emails/monthly-email-template";
 
 function mustEnv(name: string) {
   const value = process.env[name];
-  if (!value) throw new Error(`Missing environment variable: ${name}`);
+  if (!value) {
+    throw new Error(`Missing environment variable: ${name}`);
+  }
   return value;
 }
 
@@ -30,29 +34,7 @@ function formatMonthNL(yyyyMm01: string) {
   return `${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
-type TopItem = { key: string; value: number };
-
-type Summary = {
-  kpis: {
-    new_users: number;
-    sessions: number;
-  };
-  top_pages?: TopItem[];
-  top_countries?: TopItem[];
-};
-
-type Comparison = {
-  kpis: {
-    new_users?: {
-      delta_pct: number | null;
-    };
-    sessions?: {
-      delta_pct: number | null;
-    };
-  };
-};
-
-type SendMonthlyReportEmailArgs = {
+export type SendMonthlyReportEmailArgs = {
   to: string;
   customerName: string;
   monthStr: string;
@@ -70,10 +52,18 @@ export async function sendMonthlyReportEmail({
   comparison,
 }: SendMonthlyReportEmailArgs) {
   const mailgun = new Mailgun(FormData);
-  const mg = mailgun.client({
+
+  const clientConfig: any = {
     username: "api",
     key: mustEnv("MAILGUN_API_KEY"),
-  });
+  };
+
+  const apiBaseUrl = process.env.MAILGUN_API_BASE_URL;
+  if (apiBaseUrl) {
+    clientConfig.url = apiBaseUrl;
+  }
+
+  const mg = mailgun.client(clientConfig);
 
   const subject = `Pixelplus rapport – ${formatMonthNL(monthStr)} – ${customerName}`;
 
