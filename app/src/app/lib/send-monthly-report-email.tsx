@@ -36,6 +36,7 @@ function formatMonthNL(yyyyMm01: string) {
 
 export type SendMonthlyReportEmailArgs = {
   to: string;
+  bcc?: string | null;
   customerName: string;
   monthStr: string;
   reportUrl: string;
@@ -45,6 +46,7 @@ export type SendMonthlyReportEmailArgs = {
 
 export async function sendMonthlyReportEmail({
   to,
+  bcc,
   customerName,
   monthStr,
   reportUrl,
@@ -80,6 +82,7 @@ export async function sendMonthlyReportEmail({
   return mg.messages.create(mustEnv("MAILGUN_DOMAIN"), {
     from: mustEnv("MAILGUN_FROM_EMAIL"),
     to: [to],
+    bcc: bcc ? [bcc] : undefined,
     subject,
     html,
     text: `Rapport ${formatMonthNL(monthStr)} voor ${customerName}: ${reportUrl}`,

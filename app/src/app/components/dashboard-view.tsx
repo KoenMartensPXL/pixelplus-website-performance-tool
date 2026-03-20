@@ -413,6 +413,10 @@ export default function DashboardView({
               <span className="text-sm text-white/50">
                 {customer?.gsc_site_url ?? "Nog geen domein beschikbaar"}
               </span>
+              <span className="text-sm text-white/50">
+                Contactpersoon:{" "}
+                {customer?.contact_person ?? "Geen contactpersoon"}
+              </span>
             </div>
           </div>
 

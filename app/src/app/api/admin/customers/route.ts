@@ -21,11 +21,21 @@ export async function POST(request: Request) {
     const {
       name,
       contactEmail,
+      contactPerson,
+      bcc,
       isActive,
       reportEnabled,
       ga4PropertyId,
       gscSiteUrl,
     } = body;
+
+    const normalizedContactPerson =
+      typeof contactPerson === "string" && contactPerson.trim()
+        ? contactPerson.trim()
+        : null;
+
+    const normalizedBcc =
+      typeof bcc === "string" && bcc.trim() ? bcc.trim() : null;
 
     if (!name || !contactEmail || !ga4PropertyId || !gscSiteUrl) {
       return NextResponse.json(
@@ -34,7 +44,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const db = await getDb();
+    const db = getDb();
     const slug = await generateUniqueSlug(name);
 
     await db.execute(
@@ -43,17 +53,21 @@ export async function POST(request: Request) {
           name,
           slug,
           contact_emails,
+          contact_person,
+          bcc,
           is_active,
           report_enabled,
           ga4_property_id,
           gsc_site_url
         )
-        VALUES (?, ?, JSON_ARRAY(?), ?, ?, ?, ?)
+        VALUES (?, ?, JSON_ARRAY(?), ?, ?, ?, ?, ?, ?)
       `,
       [
         name,
         slug,
         contactEmail,
+        normalizedContactPerson,
+        normalizedBcc,
         isActive ? 1 : 0,
         reportEnabled ? 1 : 0,
         ga4PropertyId,
@@ -63,7 +77,7 @@ export async function POST(request: Request) {
 
     const [rows] = await db.execute(
       `
-        SELECT id, name, slug, is_active, report_enabled, ga4_property_id, gsc_site_url
+        SELECT id, name, slug, contact_person, bcc, is_active, report_enabled, ga4_property_id, gsc_site_url
         FROM customers
         WHERE slug = ?
         LIMIT 1

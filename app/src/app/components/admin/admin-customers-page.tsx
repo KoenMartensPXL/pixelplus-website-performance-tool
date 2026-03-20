@@ -11,6 +11,8 @@ type Customer = {
   id: number;
   name: string;
   slug: string;
+  contact_person?: string | null;
+  bcc?: string | null;
   is_active: number | boolean;
   report_enabled: number | boolean;
   ga4_property_id: string;
@@ -68,6 +70,8 @@ export default function AdminCustomersPage({
 
   const [name, setName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
+  const [contactPerson, setContactPerson] = useState("");
+  const [bcc, setBcc] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [reportEnabled, setReportEnabled] = useState(true);
   const [ga4PropertyId, setGa4PropertyId] = useState("");
@@ -102,6 +106,8 @@ export default function AdminCustomersPage({
         body: JSON.stringify({
           name,
           contactEmail,
+          contactPerson,
+          bcc,
           isActive,
           reportEnabled,
           ga4PropertyId,
@@ -121,6 +127,8 @@ export default function AdminCustomersPage({
 
       setName("");
       setContactEmail("");
+      setContactPerson("");
+      setBcc("");
       setIsActive(true);
       setReportEnabled(true);
       setGa4PropertyId("");
@@ -223,8 +231,35 @@ export default function AdminCustomersPage({
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
                   className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none"
-                  placeholder="bijv. klant@bedrijf.be"
+                  placeholder="bijv. klant@bedrijf.nl"
                   required
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm text-white/70">
+                  Contactpersoon{" "}
+                  <span className="text-white/30">(optioneel)</span>
+                </label>
+                <input
+                  type="text"
+                  value={contactPerson}
+                  onChange={(e) => setContactPerson(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none"
+                  placeholder="bijv. Mathy Bruggen"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm text-white/70">
+                  BCC e-mail <span className="text-white/30">(optioneel)</span>
+                </label>
+                <input
+                  type="email"
+                  value={bcc}
+                  onChange={(e) => setBcc(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none"
+                  placeholder="bijv. intern@pixelplus.nl"
                 />
               </div>
 
