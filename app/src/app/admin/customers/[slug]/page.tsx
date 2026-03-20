@@ -45,7 +45,6 @@ export default async function AdminCustomerPage({
         series={[]}
         token=""
       />
-      <BrandFooter />
     </>
   );
 }

@@ -21,6 +21,7 @@ import {
 import React from "react";
 import { buildCoreKpis, buildTrafficKpis, buildMarketingKpis } from "./kpi";
 import { monthLabel } from "@/app/lib/format";
+import BrandFooter from "./brand/brand-footer";
 
 type Trend = "up" | "flat" | "down";
 type KV = { key: string; value: number };
@@ -557,6 +558,7 @@ export default function DashboardView({
           </div>
         </section>
       </main>
+      <BrandFooter />
     </div>
   );
 }
