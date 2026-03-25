@@ -42,6 +42,7 @@ type CustomerRow = {
   id: number;
   name: string;
   slug: string;
+  bcc?: string;
   contact_emails: string | string[] | null;
   report_enabled?: number;
 };
@@ -58,7 +59,7 @@ async function getCustomerBySlug(slug: string): Promise<CustomerRow> {
 
   const [customerRows] = await db.execute(
     `
-      SELECT id, name, slug, contact_emails, report_enabled
+      SELECT id, name, slug, bcc, contact_emails, report_enabled
       FROM customers
       WHERE slug = ?
       LIMIT 1
@@ -170,13 +171,22 @@ export async function resendLatestReportForCustomer(slug: string) {
     customer.id,
     customer.slug,
   );
-  const reportMonth = String(report.report_month).slice(0, 10);
+
+  function toLocalIsoDate(date: Date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  }
+
+  const reportMonth =
+    report.report_month instanceof Date
+      ? toLocalIsoDate(report.report_month)
+      : String(report.report_month).slice(0, 10);
 
   for (const email of contactEmails) {
     await sendMonthlyReportEmail({
       to: email,
       customerName: customer.name,
       monthStr: reportMonth,
+      bcc: customer.bcc,
       reportUrl,
       summary,
       comparison,

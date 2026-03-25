@@ -1,5 +1,3 @@
-import Mailgun from "mailgun.js";
-import FormData from "form-data";
 import { render } from "@react-email/render";
 import MonthlyReportEmail, {
   type Summary,
@@ -14,8 +12,20 @@ function mustEnv(name: string) {
   return value;
 }
 
-function formatMonthNL(yyyyMm01: string) {
-  const d = new Date(`${yyyyMm01}T00:00:00Z`);
+function formatMonthNL(monthInput: string | Date) {
+  const d =
+    monthInput instanceof Date
+      ? monthInput
+      : /^\d{4}-\d{2}$/.test(monthInput)
+        ? new Date(`${monthInput}-01`)
+        : /^\d{4}-\d{2}-\d{2}$/.test(monthInput)
+          ? new Date(monthInput)
+          : null;
+
+  if (!d || Number.isNaN(d.getTime())) {
+    throw new Error(`Invalid monthStr: ${String(monthInput)}`);
+  }
+
   const months = [
     "januari",
     "februari",
@@ -31,7 +41,7 @@ function formatMonthNL(yyyyMm01: string) {
     "december",
   ];
 
-  return `${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  return `${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 export type SendMonthlyReportEmailArgs = {
@@ -44,6 +54,18 @@ export type SendMonthlyReportEmailArgs = {
   comparison: Comparison;
 };
 
+type CommApiPayload = {
+  apiKey: string;
+  base64: 1;
+  type: "send";
+  from: string;
+  fromName: string;
+  to: string;
+  subject: string;
+  message: string;
+  bcc?: string;
+};
+
 export async function sendMonthlyReportEmail({
   to,
   bcc,
@@ -53,19 +75,10 @@ export async function sendMonthlyReportEmail({
   summary,
   comparison,
 }: SendMonthlyReportEmailArgs) {
-  const mailgun = new Mailgun(FormData);
-
-  const clientConfig: any = {
-    username: "api",
-    key: mustEnv("MAILGUN_API_KEY"),
-  };
-
-  const apiBaseUrl = process.env.MAILGUN_API_BASE_URL;
-  if (apiBaseUrl) {
-    clientConfig.url = apiBaseUrl;
-  }
-
-  const mg = mailgun.client(clientConfig);
+  const apiUrl = "http://comm.pixelplus.nl/api/v2/";
+  const apiKey = mustEnv("COMM_API_KEY");
+  const from = "no-reply@pixelplus.nl";
+  const fromName = "Pixelplus";
 
   const subject = `Pixelplus rapport – ${formatMonthNL(monthStr)} – ${customerName}`;
 
@@ -79,12 +92,61 @@ export async function sendMonthlyReportEmail({
     />,
   );
 
-  return mg.messages.create(mustEnv("MAILGUN_DOMAIN"), {
-    from: mustEnv("MAILGUN_FROM_EMAIL"),
-    to: [to],
-    bcc: bcc ? [bcc] : undefined,
+  const payload: CommApiPayload = {
+    apiKey,
+    base64: 1,
+    type: "send",
+    from,
+    fromName,
+    to,
     subject,
-    html,
-    text: `Rapport ${formatMonthNL(monthStr)} voor ${customerName}: ${reportUrl}`,
+    message: Buffer.from(html, "utf-8").toString("base64"),
+    ...(bcc ? { bcc } : {}),
+  };
+
+  console.log("[sendMonthlyReportEmail] apiUrl:", apiUrl);
+  console.log("[sendMonthlyReportEmail] payload keys:", Object.keys(payload));
+  console.log("[sendMonthlyReportEmail] payload preview:", {
+    apiKey: "[REDACTED]",
+    base64: payload.base64,
+    type: payload.type,
+    from: payload.from,
+    fromName: payload.fromName,
+    to: payload.to,
+    bcc: payload.bcc,
+    subject: payload.subject,
+    messageLength: payload.message.length,
   });
+
+  const response = await fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const rawBody = await response.text();
+
+  console.log("[sendMonthlyReportEmail] response status:", response.status);
+  console.log("[sendMonthlyReportEmail] response ok:", response.ok);
+  console.log("[sendMonthlyReportEmail] response body:", rawBody);
+
+  let parsedBody: unknown = rawBody;
+  try {
+    parsedBody = JSON.parse(rawBody);
+  } catch {}
+
+  if (!response.ok) {
+    throw new Error(
+      `COMM API request failed with status ${response.status}: ${rawBody}`,
+    );
+  }
+
+  return {
+    ok: response.ok,
+    status: response.status,
+    body: parsedBody,
+    sentPayloadKeys: Object.keys(payload),
+  };
 }

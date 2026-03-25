@@ -271,7 +271,7 @@ function SendReportAction({ slug }: { slug: string }) {
           type="button"
           onClick={handleSend}
           disabled={loading}
-          className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10 disabled:opacity-50"
+          className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Mail className="h-4 w-4" />
           {loading ? "Bezig..." : "Performance mail opnieuw versturen"}
