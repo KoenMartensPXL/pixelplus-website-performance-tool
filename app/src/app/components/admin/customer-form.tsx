@@ -5,31 +5,65 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import ToggleCard from "@/app/components/admin/toggle-card";
 
-export default function CustomerForm() {
+type CustomerFormProps = {
+  mode?: "create" | "edit";
+  customerSlug?: string;
+  initialValues?: {
+    name?: string;
+    contactEmail?: string;
+    contactPerson?: string;
+    bcc?: string;
+    isActive?: boolean;
+    reportEnabled?: boolean;
+    ga4PropertyId?: string;
+    gscSiteUrl?: string;
+  };
+};
+
+export default function CustomerForm({
+  mode = "create",
+  customerSlug,
+  initialValues,
+}: CustomerFormProps) {
   const router = useRouter();
 
-  const [name, setName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [contactPerson, setContactPerson] = useState("");
-  const [bcc, setBcc] = useState("");
-  const [isActive, setIsActive] = useState(true);
-  const [reportEnabled, setReportEnabled] = useState(true);
-  const [ga4PropertyId, setGa4PropertyId] = useState("");
-  const [gscSiteUrl, setGscSiteUrl] = useState("");
+  const [name, setName] = useState(initialValues?.name ?? "");
+  const [contactEmail, setContactEmail] = useState(
+    initialValues?.contactEmail ?? "",
+  );
+  const [contactPerson, setContactPerson] = useState(
+    initialValues?.contactPerson ?? "",
+  );
+  const [bcc, setBcc] = useState(initialValues?.bcc ?? "");
+  const [isActive, setIsActive] = useState(initialValues?.isActive ?? true);
+  const [reportEnabled, setReportEnabled] = useState(
+    initialValues?.reportEnabled ?? true,
+  );
+  const [ga4PropertyId, setGa4PropertyId] = useState(
+    initialValues?.ga4PropertyId ?? "",
+  );
+  const [gscSiteUrl, setGscSiteUrl] = useState(initialValues?.gscSiteUrl ?? "");
 
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
 
-  async function handleCreateCustomer(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setFormError("");
     setFormSuccess("");
 
     try {
-      const res = await fetch("/api/admin/customers", {
-        method: "POST",
+      const url =
+        mode === "edit" && customerSlug
+          ? `/api/admin/customers/${customerSlug}`
+          : "/api/admin/customers";
+
+      const method = mode === "edit" ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
         },
@@ -48,33 +82,41 @@ export default function CustomerForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setFormError(data.message || "Klant aanmaken mislukt");
+        setFormError(data.message || "Opslaan mislukt");
         setLoading(false);
         return;
       }
 
-      setFormSuccess("Klant succesvol toegevoegd.");
+      setFormSuccess(
+        mode === "edit"
+          ? "Klant succesvol bijgewerkt."
+          : "Klant succesvol toegevoegd.",
+      );
       setLoading(false);
 
       setTimeout(() => {
-        router.push("/admin");
+        if (mode === "edit" && customerSlug) {
+          router.push(`/admin/customers/${customerSlug}`);
+        } else {
+          router.push("/admin");
+        }
         router.refresh();
       }, 1200);
     } catch {
-      setFormError("Er ging iets mis bij het aanmaken van de klant.");
+      setFormError("Er ging iets mis bij het opslaan van de klant.");
       setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleCreateCustomer} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="mb-2 block text-sm text-white/70">Naam *</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-xl border border-[#E5DED3] bg-[#FAF7F2] px-4 py-3 text-[#1A1A1A] outline-none placeholder:text-[#9A948A]"
+          className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none placeholder:text-white/30"
           placeholder="Bedrijfsnaam"
           required
         />
@@ -88,34 +130,32 @@ export default function CustomerForm() {
           type="email"
           value={contactEmail}
           onChange={(e) => setContactEmail(e.target.value)}
-          className="w-full rounded-xl border border-[#E5DED3] bg-[#FAF7F2] px-4 py-3 text-[#1A1A1A] outline-none placeholder:text-[#9A948A]"
-          placeholder="Klant@bedrijf.nl"
+          className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none placeholder:text-white/30"
+          placeholder="klant@bedrijf.nl"
           required
         />
       </div>
 
       <div>
         <label className="mb-2 block text-sm text-white/70">
-          Contactpersoon <span className="text-white/30">(optioneel)</span>
+          Contactpersoon
         </label>
         <input
           type="text"
           value={contactPerson}
           onChange={(e) => setContactPerson(e.target.value)}
-          className="w-full rounded-xl border border-[#E5DED3] bg-[#FAF7F2] px-4 py-3 text-[#1A1A1A] outline-none placeholder:text-[#9A948A]"
-          placeholder="Naam voornaam"
+          className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none placeholder:text-white/30"
+          placeholder="Naam contactpersoon"
         />
       </div>
 
       <div>
-        <label className="mb-2 block text-sm text-white/70">
-          BCC e-mail <span className="text-white/30">(optioneel)</span>
-        </label>
+        <label className="mb-2 block text-sm text-white/70">BCC e-mail</label>
         <input
           type="email"
           value={bcc}
           onChange={(e) => setBcc(e.target.value)}
-          className="w-full rounded-xl border border-[#E5DED3] bg-[#FAF7F2] px-4 py-3 text-[#1A1A1A] outline-none placeholder:text-[#9A948A]"
+          className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none placeholder:text-white/30"
           placeholder="intern@pixelplus.nl"
         />
       </div>
@@ -142,9 +182,9 @@ export default function CustomerForm() {
           type="text"
           value={ga4PropertyId}
           onChange={(e) => setGa4PropertyId(e.target.value)}
-          className="w-full rounded-xl border border-[#E5DED3] bg-[#FAF7F2] px-4 py-3 text-[#1A1A1A] outline-none placeholder:text-[#9A948A]"
+          className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none placeholder:text-white/30"
+          placeholder="Bijv. 123456789"
           required
-          placeholder="G-XXXXXXXXXX"
         />
       </div>
 
@@ -156,9 +196,9 @@ export default function CustomerForm() {
           type="text"
           value={gscSiteUrl}
           onChange={(e) => setGscSiteUrl(e.target.value)}
-          className="w-full rounded-xl border border-[#E5DED3] bg-[#FAF7F2] px-4 py-3 text-[#1A1A1A] outline-none placeholder:text-[#9A948A]"
+          className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none placeholder:text-white/30"
+          placeholder="https://voorbeeld.nl"
           required
-          placeholder="sc-domain:example.com"
         />
       </div>
 
@@ -177,9 +217,15 @@ export default function CustomerForm() {
       <button
         type="submit"
         disabled={loading}
-        className="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-black px-4 py-3 font-medium text-white transition hover:bg-black/90"
+        className="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-white px-4 py-3 font-medium text-black transition hover:bg-white/90 disabled:opacity-50"
       >
-        <span>{loading ? "Bezig..." : "Klant toevoegen"}</span>
+        <span>
+          {loading
+            ? "Bezig..."
+            : mode === "edit"
+              ? "Klantgegevens opslaan"
+              : "Klant toevoegen"}
+        </span>
 
         {loading ? (
           <span className="inline-flex animate-[spin_1.8s_linear_infinite]">

@@ -5,11 +5,8 @@ import Link from "next/link";
 import {
   ArrowLeft,
   ArrowDownRight,
-  ArrowRight,
-  ArrowUpRight,
   Activity,
   Eye,
-  Info,
   MousePointerClick,
   Users,
   Globe,
@@ -17,6 +14,7 @@ import {
   CheckCircle2,
   AlertCircle,
   X,
+  Pencil,
 } from "lucide-react";
 import {
   TrendTag,
@@ -154,7 +152,7 @@ function SendReportAction({ slug }: { slug: string }) {
           type="button"
           onClick={handleSend}
           disabled={loading}
-          className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Mail className="h-4 w-4" />
           {loading ? "Bezig..." : "Performance mail opnieuw versturen"}
@@ -310,7 +308,7 @@ export default function DashboardView({
 
       <main className="mx-auto max-w-6xl space-y-8 px-4 py-8">
         <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-sm backdrop-blur">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <span className="text-lg font-semibold text-white">
                 {customer?.name ?? "Klant"}
@@ -328,38 +326,54 @@ export default function DashboardView({
               </span>
             </div>
 
-            <div className="sm:text-right">
-              <div className="text-xs text-white/50">
-                Er wordt vergeleken met
-              </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-end">
+              {isAdmin && customer?.slug ? (
+                <Link
+                  href={`/admin/customers/${customer.slug}/edit`}
+                  className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Klantgegevens bewerken
+                </Link>
+              ) : null}
 
-              {availableComparisonMonths.length > 0 ? (
-                <div className="mt-2">
-                  <select
-                    value={selectedComparisonMonth}
-                    onChange={(e) => setSelectedComparisonMonth(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white outline-none transition hover:bg-white/10 sm:min-w-[240px]"
-                  >
-                    {availableComparisonMonths.map((month) => {
-                      const isPreviousMonth =
-                        currentReportMonth &&
-                        monthDiff(currentReportMonth, month) === 1;
-
-                      return (
-                        <option
-                          key={month}
-                          value={month}
-                          className="bg-black text-white"
-                        >
-                          {isPreviousMonth ? "Vorige maand" : monthLabel(month)}
-                        </option>
-                      );
-                    })}
-                  </select>
+              <div className="sm:text-right">
+                <div className="text-xs text-white/50">
+                  Er wordt vergeleken met
                 </div>
-              ) : (
-                <div className="mt-2 text-sm font-semibold text-white">—</div>
-              )}
+
+                {availableComparisonMonths.length > 0 ? (
+                  <div className="mt-2">
+                    <select
+                      value={selectedComparisonMonth}
+                      onChange={(e) =>
+                        setSelectedComparisonMonth(e.target.value)
+                      }
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white outline-none transition hover:bg-white/10 sm:min-w-[240px]"
+                    >
+                      {availableComparisonMonths.map((month) => {
+                        const isPreviousMonth =
+                          currentReportMonth &&
+                          monthDiff(currentReportMonth, month) === 1;
+
+                        return (
+                          <option
+                            key={month}
+                            value={month}
+                            className="bg-black text-white"
+                          >
+                            {isPreviousMonth
+                              ? "Vorige maand"
+                              : monthLabel(month)}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="mt-2 text-sm font-semibold text-white">—</div>
+                )}
+              </div>
             </div>
           </div>
         </section>
