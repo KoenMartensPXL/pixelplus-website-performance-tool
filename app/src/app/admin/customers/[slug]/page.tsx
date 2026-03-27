@@ -4,8 +4,7 @@ import {
   getCustomerBySlug,
   getLatestReportForCustomer,
 } from "@/app/lib/dashboard";
-import DashboardView from "@/app/components/dashboard-view";
-import BrandFooter from "@/app/components/brand/brand-footer";
+import DashboardView from "@/app/components/admin-dashboard-view";
 
 function serializeForClient<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
@@ -36,15 +35,13 @@ export default async function AdminCustomerPage({
   const safeReport = serializeForClient(report);
 
   return (
-    <>
-      <DashboardView
-        customer={safeCustomer}
-        report={safeReport}
-        isAdmin={true}
-        months={[]}
-        series={[]}
-        token=""
-      />
-    </>
+    <DashboardView
+      customer={safeCustomer}
+      report={safeReport}
+      isAdmin={true}
+      months={[]}
+      series={[]}
+      token=""
+    />
   );
 }

@@ -3,7 +3,11 @@ import {
   getLatestReportForCustomer,
   getTokenCustomerBySlugAndToken,
 } from "@/app/lib/dashboard";
-import DashboardView from "@/app/components/dashboard-view";
+import DashboardView from "@/app/components/customer-dashboard-view";
+
+function serializeForClient<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value));
+}
 
 export default async function CustomerMagicLinkPage({
   params,
@@ -20,13 +24,8 @@ export default async function CustomerMagicLinkPage({
 
   const report = await getLatestReportForCustomer(customer.id);
 
-  return (
-    <DashboardView
-      customer={customer}
-      report={report}
-      months={[]}
-      series={[]}
-      token={token}
-    />
-  );
+  const safeCustomer = serializeForClient(customer);
+  const safeReport = serializeForClient(report);
+
+  return <DashboardView customer={safeCustomer} report={safeReport} />;
 }
